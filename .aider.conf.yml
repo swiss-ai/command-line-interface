@@ -1,0 +1,3 @@
+# Aider configuration for Swiss AI Research Platform
+openai-api-base: https://api.swissai.cscs.ch/v1
+model: openai/zai-org/GLM-4.7-Flash
