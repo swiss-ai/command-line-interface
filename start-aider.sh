@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
-# Launch aider with GLM-4.7-Flash on the Swiss AI Research Platform
+# Launch aider on the Swiss AI Research Platform
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-# Load API key from .env
-if [ -f "$SCRIPT_DIR/.env" ]; then
-    set -a; source "$SCRIPT_DIR/.env"; set +a
-fi
+load_env "$SCRIPT_DIR"
 
-export OPENAI_API_BASE="https://api.swissai.cscs.ch/v1"
-export OPENAI_API_KEY="${CSCS_SERVING_API:?CSCS_SERVING_API not set in .env}"
+export OPENAI_API_BASE="$CSCS_API_BASE"
+export OPENAI_BASE_URL="$CSCS_API_BASE"
+export OPENAI_API_KEY="$CSCS_SERVING_API"
 
-MODEL="${1:-openai/zai-org/GLM-4.7-Flash}"
+pick_model "${1:-}"
 
-echo "=== Aider + GLM-4.7-Flash ==="
+LOG_DIR="$SCRIPT_DIR/logs"
+mkdir -p "$LOG_DIR"
+
+echo "=== Aider + $MODEL ==="
 echo "Endpoint: $OPENAI_API_BASE"
 echo "Model:    $MODEL"
+echo "Logs:     $LOG_DIR/aider-llm.log, $LOG_DIR/aider-chat.md"
 echo ""
 
-exec aider --model "$MODEL" "${@:2}"
+exec aider --model "openai/$MODEL" \
+    --llm-history-file "$LOG_DIR/aider-llm.log" \
+    --chat-history-file "$LOG_DIR/aider-chat.md" \
+    "${@:2}"

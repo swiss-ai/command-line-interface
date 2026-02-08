@@ -9,6 +9,8 @@ CLI coding assistants configured for the [Swiss AI Research Platform (CSCS)](htt
 | `./start-aider.sh` | [Aider](https://aider.chat/) | Native OpenAI-compat | General coding, git-aware edits |
 | `./start-kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) | Native OpenAI-compat (`openai_legacy`) | Agentic coding with tool calling |
 | `./start-interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) | Native OpenAI-compat | Running code, system automation |
+| `./start-goose.sh` | [Goose](https://github.com/block/goose) | Native OpenAI-compat | MCP extensions, shell + file tools |
+| `./start-qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) | Native OpenAI-compat | Claude Code-like UX, plan mode, sub-agents |
 | `./start-claude-glm.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) | Via translation proxy | Claude Code UX with GLM backend |
 
 ## Setup
@@ -42,6 +44,12 @@ pip install kimi-cli
 # Open Interpreter
 pip install open-interpreter
 
+# Goose
+curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
+
+# Qwen Code (requires Node.js 20+)
+npm install -g @qwen-code/qwen-code@latest
+
 # Claude Code (npm) + proxy (for ./start-claude-glm.sh)
 npm install -g @anthropic-ai/claude-code
 git clone https://github.com/fuergaosi233/claude-code-proxy .claude-code-proxy
@@ -74,6 +82,8 @@ max_context_size = 128000
 ./start-aider.sh                # interactive aider session
 ./start-kimi.sh                 # interactive kimi session
 ./start-interpreter.sh          # interactive open-interpreter session
+./start-goose.sh                # interactive goose session
+./start-qwen.sh                 # interactive qwen code session
 ./start-claude-glm.sh           # claude code with GLM backend (starts proxy automatically)
 ```
 
@@ -119,6 +129,8 @@ python -m pytest tests/test_glm_coding.py -v
 start-aider.sh          # Loads .env, sets OPENAI_API_BASE, launches aider
 start-kimi.sh           # Unsets conflicting env vars, launches kimi (uses ~/.kimi/config.toml)
 start-interpreter.sh    # Loads .env, passes API config via CLI flags
+start-goose.sh          # Loads .env, sets OPENAI_HOST + GOOSE_PROVIDER, launches goose
+start-qwen.sh           # Loads .env, sets OPENAI_BASE_URL + OPENAI_MODEL, launches qwen
 start-claude-glm.sh     # Loads .env, starts proxy, launches claude code pointed at proxy
 tests/test_glm_coding.py  # pytest suite: API, aider integration, tool calling
 ```
@@ -130,4 +142,6 @@ Each has different strengths:
 - **Aider** — most mature, best git integration, no proxy needed, works with any model
 - **Kimi Code** — native tool calling (WriteFile, ReadFile, etc.), agentic planning
 - **Open Interpreter** — executes code directly, good for data tasks and automation
+- **Goose** — MCP extension ecosystem, todo tracking, shell + file tools, large community
+- **Qwen Code** — Claude Code-like UX with plan mode, sub-agents, and native OpenAI support
 - **Claude Code** — powerful agentic UX, but requires a proxy for non-Anthropic models

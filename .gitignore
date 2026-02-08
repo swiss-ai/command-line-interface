@@ -9,6 +9,9 @@
 .aider.input.history
 .aider.tags.cache.v3/
 
+# Logs
+logs/
+
 # Python
 __pycache__/
 *.pyc
@@ -16,3 +19,4 @@ __pycache__/
 
 # Kimi
 .kimi/
+.aider*

@@ -1,23 +1,27 @@
 #!/usr/bin/env bash
-# Launch Open Interpreter with GLM-4.7-Flash on the Swiss AI Research Platform
+# Launch Open Interpreter on the Swiss AI Research Platform
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-# Load API key from .env
-if [ -f "$SCRIPT_DIR/.env" ]; then
-    set -a; source "$SCRIPT_DIR/.env"; set +a
-fi
+load_env "$SCRIPT_DIR"
 
-API_KEY="${CSCS_SERVING_API:?CSCS_SERVING_API not set in .env}"
+pick_model "${1:-}"
 
-echo "=== Open Interpreter + GLM-4.7-Flash ==="
-echo "Endpoint: https://api.swissai.cscs.ch/v1"
-echo "Model:    openai/zai-org/GLM-4.7-Flash"
+LOG_DIR="$SCRIPT_DIR/logs"
+mkdir -p "$LOG_DIR"
+OI_LOG="$LOG_DIR/interpreter-debug.log"
+
+echo "=== Open Interpreter + $MODEL ==="
+echo "Endpoint: $CSCS_API_BASE"
+echo "Model:    openai/$MODEL"
+echo "Log:      $OI_LOG"
 echo ""
 
 exec interpreter \
-    --model "openai/zai-org/GLM-4.7-Flash" \
-    --api_base "https://api.swissai.cscs.ch/v1" \
-    --api_key "$API_KEY" \
+    --model "openai/$MODEL" \
+    --api_base "$CSCS_API_BASE" \
+    --api_key "$CSCS_SERVING_API" \
     --context_window 128000 \
-    "$@"
+    --verbose \
+    "$@" 2> >(tee -a "$OI_LOG" >&2)
