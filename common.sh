@@ -25,12 +25,18 @@ fetch_chat_models() {
         [ -n "$m" ] && AVAILABLE_MODELS+=("$m")
     done < <(echo "$raw" | python3 -c "
 import sys, json
+from collections import OrderedDict
+
 data = json.load(sys.stdin).get('data', [])
 skip = ['snowflake-arctic-embed', 'bge-reranker']
+seen = OrderedDict()
 for m in sorted(data, key=lambda x: x['id']):
     mid = m['id']
     if not any(s in mid.lower() for s in skip):
-        print(mid)
+        if mid not in seen:
+            seen[mid] = None
+for mid in seen:
+    print(mid)
 " 2>/dev/null)
 }
 
