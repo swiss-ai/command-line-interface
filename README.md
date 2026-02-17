@@ -4,13 +4,13 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 
 ## Available CLIs
 
-| Script | CLI | Pros | Cons |
-|--------|-----|------|------|
-| `./goose.sh` | [Goose](https://github.com/block/goose) (recommended) | MCP extension ecosystem, shell + file tools, large community | No web search |
-| `./claude-code.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) | Best agentic UX, plan mode, sub-agents, extensive tool use | Requires translation proxy for non-Anthropic models |
-| `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) | Native tool calling, agentic planning | No code execution, no web access |
-| `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) | Claude Code-like UX, plan mode, sub-agents, native OpenAI support | Newer, less battle-tested |
-| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) | Executes code directly, good for data tasks and automation | Less polished UX |
+| Script | CLI |
+|--------|-----|
+| `./claude-code.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) (recommended) |
+| `./goose.sh` | [Goose](https://github.com/block/goose) |
+| `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) |
+| `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) |
+| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) |
 
 ## Setup
 
@@ -34,13 +34,13 @@ Get your key from [serving.swissai.cscs.ch](https://serving.swissai.cscs.ch/). N
 ### 3. Install CLIs
 
 ```bash
-# Goose (recommended)
-curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
-
-# Claude Code (npm) + proxy
+# Claude Code (recommended, npm) + proxy
 npm install -g @anthropic-ai/claude-code
 git clone https://github.com/fuergaosi233/claude-code-proxy .claude-code-proxy
 pip install -r .claude-code-proxy/requirements.txt
+
+# Goose
+curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
 
 # Kimi Code CLI (requires Python 3.12+)
 pip install kimi-cli
