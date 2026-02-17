@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/common.sh"
 
 load_env "$SCRIPT_DIR"
 
-pick_model "${1:-zai-org/GLM-4.7-Flash}"
+pick_model "${1:-}"
 
 export CLAUDE_CODE_DISABLE_TELEMETRY=1
 export DO_NOT_TRACK=1
@@ -51,9 +51,18 @@ echo ""
 
 # Launch Claude Code pointing at the proxy
 cd "$SCRIPT_DIR"
+# Load append-system-prompt if it exists
+APPEND_ARGS=()
+APPEND_FILE="$SCRIPT_DIR/append-system-prompt.txt"
+if [ -f "$APPEND_FILE" ]; then
+    APPEND_ARGS=(--append-system-prompt "$(cat "$APPEND_FILE")")
+    echo "Prompt:   $APPEND_FILE"
+fi
+
 ANTHROPIC_BASE_URL="http://$HOST:$PORT" ANTHROPIC_API_KEY="dummy" claude \
     --debug-file "$CLAUDE_LOG" \
     --system-prompt "You are $MODEL, a coding assistant powered by the Swiss AI Research Platform (CSCS). You help users with software engineering tasks: writing code, fixing bugs, refactoring, and explaining code. You have access to tools for reading files, writing files, editing files, running shell commands, and searching. Use these tools to assist the user." \
+    "${APPEND_ARGS[@]}" \
     "${@:2}"
 EXIT_CODE=$?
 

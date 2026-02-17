@@ -1,17 +1,16 @@
-# Swiss AI CLI
+# Swiss AI Command Line Interface (experimental)
 
-CLI coding assistants configured for the [Swiss AI Research Platform (CSCS)](https://serving.swissai.cscs.ch/), using **GLM-4.7-Flash** via the OpenAI-compatible API at `https://api.swissai.cscs.ch/v1`.
+Command line coding assistants configured for the [Swiss AI Research Platform (CSCS)](https://serving.swissai.cscs.ch/), using the OpenAI-compatible API at `https://api.swissai.cscs.ch/v1`.
 
 ## Available CLIs
 
-| Script | CLI | How it connects | Best for |
-|--------|-----|----------------|----------|
-| `./start-aider.sh` | [Aider](https://aider.chat/) | Native OpenAI-compat | General coding, git-aware edits |
-| `./start-kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) | Native OpenAI-compat (`openai_legacy`) | Agentic coding with tool calling |
-| `./start-interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) | Native OpenAI-compat | Running code, system automation |
-| `./start-goose.sh` | [Goose](https://github.com/block/goose) | Native OpenAI-compat | MCP extensions, shell + file tools |
-| `./start-qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) | Native OpenAI-compat | Claude Code-like UX, plan mode, sub-agents |
-| `./start-claude-glm.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) | Via translation proxy | Claude Code UX with GLM backend |
+| Script | CLI | Pros | Cons |
+|--------|-----|------|------|
+| `./goose.sh` | [Goose](https://github.com/block/goose) (recommended) | MCP extension ecosystem, shell + file tools, large community | No web search |
+| `./claude-code.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) | Best agentic UX, plan mode, sub-agents, extensive tool use | Requires translation proxy for non-Anthropic models |
+| `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) | Native tool calling, agentic planning | No code execution, no web access |
+| `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) | Claude Code-like UX, plan mode, sub-agents, native OpenAI support | Newer, less battle-tested |
+| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) | Executes code directly, good for data tasks and automation | Less polished UX |
 
 ## Setup
 
@@ -35,25 +34,22 @@ Get your key from [serving.swissai.cscs.ch](https://serving.swissai.cscs.ch/). N
 ### 3. Install CLIs
 
 ```bash
-# Aider (recommended)
-pip install aider-chat
+# Goose (recommended)
+curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
+
+# Claude Code (npm) + proxy
+npm install -g @anthropic-ai/claude-code
+git clone https://github.com/fuergaosi233/claude-code-proxy .claude-code-proxy
+pip install -r .claude-code-proxy/requirements.txt
 
 # Kimi Code CLI (requires Python 3.12+)
 pip install kimi-cli
 
-# Open Interpreter
-pip install open-interpreter
-
-# Goose
-curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
-
 # Qwen Code (requires Node.js 20+)
 npm install -g @qwen-code/qwen-code@latest
 
-# Claude Code (npm) + proxy (for ./start-claude-glm.sh)
-npm install -g @anthropic-ai/claude-code
-git clone https://github.com/fuergaosi233/claude-code-proxy .claude-code-proxy
-pip install -r .claude-code-proxy/requirements.txt
+# Open Interpreter
+pip install open-interpreter
 ```
 
 ### 4. Kimi config
@@ -75,73 +71,3 @@ max_context_size = 128000
 ```
 
 **Gotcha:** Kimi overrides the config file API key if `OPENAI_API_KEY` is set in your environment. The launch script handles this by unsetting it.
-
-## Usage
-
-```bash
-./start-aider.sh                # interactive aider session
-./start-kimi.sh                 # interactive kimi session
-./start-interpreter.sh          # interactive open-interpreter session
-./start-goose.sh                # interactive goose session
-./start-qwen.sh                 # interactive qwen code session
-./start-claude-glm.sh           # claude code with GLM backend (starts proxy automatically)
-```
-
-### Passing extra arguments
-
-```bash
-./start-aider.sh openai/swiss-ai/Apertus-70B-Instruct-2509   # use a different model
-./start-kimi.sh --verbose                                      # debug output
-./start-claude-glm.sh -p "explain this codebase"               # headless mode
-```
-
-## Available Models
-
-| Model | Type | Notes |
-|-------|------|-------|
-| `zai-org/GLM-4.7-Flash` | Chat (MoE 30B/3B active) | Best for coding. SWE-bench 59.2%, tool-use 79.5% |
-| `swiss-ai/Apertus-70B-Instruct-2509` | Chat (70B dense) | General-purpose, weaker at code |
-| `swiss-ai/Apertus-8B-Instruct-2509` | Chat (8B dense) | Too small for coding |
-| `Snowflake/snowflake-arctic-embed-l-v2.0` | Embedding | For RAG pipelines |
-| `BAAI/bge-reranker-v2-m3` | Reranker | For RAG pipelines |
-
-Check live availability:
-
-```bash
-curl -s -H "Authorization: Bearer $CSCS_SERVING_API" https://api.swissai.cscs.ch/v1/models | python3 -m json.tool
-```
-
-## Tests
-
-The test suite validates API connectivity, code generation, aider integration, and tool/function calling:
-
-```bash
-pip install pytest requests python-dotenv
-python -m pytest tests/test_glm_coding.py -v
-```
-
-## Architecture
-
-```
-.env                    # API key (not committed)
-.aider.conf.yml         # Aider config → Swiss AI API + GLM-4.7-Flash
-.claude-code-proxy/     # Translation proxy for Claude Code (not committed, clone separately)
-start-aider.sh          # Loads .env, sets OPENAI_API_BASE, launches aider
-start-kimi.sh           # Unsets conflicting env vars, launches kimi (uses ~/.kimi/config.toml)
-start-interpreter.sh    # Loads .env, passes API config via CLI flags
-start-goose.sh          # Loads .env, sets OPENAI_HOST + GOOSE_PROVIDER, launches goose
-start-qwen.sh           # Loads .env, sets OPENAI_BASE_URL + OPENAI_MODEL, launches qwen
-start-claude-glm.sh     # Loads .env, starts proxy, launches claude code pointed at proxy
-tests/test_glm_coding.py  # pytest suite: API, aider integration, tool calling
-```
-
-### Why multiple CLIs?
-
-Each has different strengths:
-
-- **Aider** — most mature, best git integration, no proxy needed, works with any model
-- **Kimi Code** — native tool calling (WriteFile, ReadFile, etc.), agentic planning
-- **Open Interpreter** — executes code directly, good for data tasks and automation
-- **Goose** — MCP extension ecosystem, todo tracking, shell + file tools, large community
-- **Qwen Code** — Claude Code-like UX with plan mode, sub-agents, and native OpenAI support
-- **Claude Code** — powerful agentic UX, but requires a proxy for non-Anthropic models

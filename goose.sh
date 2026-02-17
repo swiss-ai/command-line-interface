@@ -14,6 +14,21 @@ export GOOSE_PROVIDER="openai"
 pick_model "${1:-}"
 
 export GOOSE_MODEL="$MODEL"
+
+# Build system prompt: base + optional append file
+AGENT_DIR="$SCRIPT_DIR/_goose-agent"
+SYSTEM_PROMPT="$AGENT_DIR/system-prompt.md"
+APPEND_FILE="$SCRIPT_DIR/append-system-prompt.txt"
+if [ -f "$APPEND_FILE" ]; then
+    SYSTEM_PROMPT_TMP="$(mktemp --suffix=.md)"
+    cat "$SYSTEM_PROMPT" > "$SYSTEM_PROMPT_TMP"
+    printf '\n\n' >> "$SYSTEM_PROMPT_TMP"
+    cat "$APPEND_FILE" >> "$SYSTEM_PROMPT_TMP"
+    SYSTEM_PROMPT="$SYSTEM_PROMPT_TMP"
+    echo "Prompt:   $APPEND_FILE"
+fi
+export GOOSE_SYSTEM_PROMPT_FILE_PATH="$SYSTEM_PROMPT"
+
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 
