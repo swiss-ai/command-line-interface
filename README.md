@@ -71,3 +71,17 @@ max_context_size = 128000
 ```
 
 **Gotcha:** Kimi overrides the config file API key if `OPENAI_API_KEY` is set in your environment. The launch script handles this by unsetting it.
+
+## Tests
+
+Run the capability tests against the live CSCS API:
+
+```bash
+python -m pytest tests/test_cli_capabilities.py -v --tb=short
+```
+
+To test a single CLI:
+
+```bash
+python -m pytest tests/test_cli_capabilities.py -v -k "TestGoose"
+```

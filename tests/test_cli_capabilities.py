@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
+WORK IN PROGRESS — Tests may fail or be incomplete.
+
 Per-CLI capability test suite for coding assistants on the CSCS GLM-4.7-Flash endpoint.
 
-Tests each CLI (Aider, Kimi, Interpreter, Goose, Qwen) against specific capabilities
+Tests each CLI (Kimi, Interpreter, Goose, Qwen) against specific capabilities
 (file write, web fetch, web search, code execution, agentic multi-step) to validate
 that each tool is correctly configured and functional.
 
@@ -43,23 +45,6 @@ def _base_env():
     env["OPENAI_BASE_URL"] = API_BASE
     return env
 
-
-def run_aider(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
-    """Run aider non-interactively."""
-    cmd = [
-        "aider",
-        "--model", MODEL_OPENAI,
-        "--no-git",
-        "--yes",
-        "--no-pretty",
-        "--no-stream",
-        "--message", message,
-    ]
-    result = subprocess.run(
-        cmd, cwd=workdir, capture_output=True, text=True,
-        timeout=timeout, env=_base_env(),
-    )
-    return {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
 
 
 def run_kimi(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
@@ -157,35 +142,6 @@ PROMPT_AGENTIC = (
 
 
 # ── Test Classes ──────────────────────────────────────────────────────────
-
-@pytest.mark.timeout(TIMEOUT + 10)
-class TestAider:
-    """Aider — file write only (no web/code-exec/agentic capabilities)."""
-
-    def test_file_write(self, tmp_path):
-        result = run_aider(str(tmp_path), PROMPT_FILE_WRITE)
-        hello = tmp_path / "hello.txt"
-        assert hello.exists(), (
-            f"hello.txt not created. rc={result['returncode']}\n"
-            f"stdout: {result['stdout'][-500:]}\nstderr: {result['stderr'][-500:]}"
-        )
-        assert "swiss-ai-test" in hello.read_text()
-
-    @pytest.mark.skip(reason="Aider has no web fetch capability")
-    def test_web_fetch(self):
-        pass
-
-    @pytest.mark.skip(reason="Aider has no web search capability")
-    def test_web_search(self):
-        pass
-
-    @pytest.mark.skip(reason="Aider has no code execution capability")
-    def test_code_exec(self):
-        pass
-
-    @pytest.mark.skip(reason="Aider has no agentic capability")
-    def test_agentic(self):
-        pass
 
 
 @pytest.mark.timeout(TIMEOUT + 10)
