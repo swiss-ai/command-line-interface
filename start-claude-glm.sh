@@ -7,7 +7,10 @@ source "$SCRIPT_DIR/common.sh"
 
 load_env "$SCRIPT_DIR"
 
-pick_model "${1:-}"
+pick_model "${1:-zai-org/GLM-4.7-Flash}"
+
+export CLAUDE_CODE_DISABLE_TELEMETRY=1
+export DO_NOT_TRACK=1
 
 # Export proxy env vars
 export OPENAI_API_KEY="$CSCS_SERVING_API"
