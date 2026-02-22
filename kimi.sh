@@ -11,7 +11,22 @@ load_env "$SCRIPT_DIR"
 unset OPENAI_API_KEY
 unset OPENAI_BASE_URL
 
-pick_model "${1:-}"
+IS_PIPE=0
+[ ! -t 0 ] && IS_PIPE=1
+export IS_PIPE
+info() { if [ "$IS_PIPE" -eq 1 ]; then echo "$@" >&2; else echo "$@"; fi; }
+
+# Parse --model/-m flag; all other args are forwarded to kimi
+MODEL_ARG=""
+KIMI_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -m|--model) MODEL_ARG="$2"; shift 2 ;;
+        *) KIMI_ARGS+=("$1"); shift ;;
+    esac
+done
+
+pick_model "$MODEL_ARG"
 
 # Override kimi's model with the selected one
 KIMI_CONFIG="default_model = \"selected\"
@@ -38,7 +53,7 @@ if [ -f "$APPEND_FILE" ]; then
     printf '\n\n' >> "$SYSTEM_PROMPT_TMP"
     cat "$APPEND_FILE" >> "$SYSTEM_PROMPT_TMP"
     # Point agent at the temp file
-    AGENT_TMP="$(mktemp --suffix=.yaml)"
+    AGENT_TMP="$(mktemp "${TMPDIR:-/tmp}/tmp.XXXXXX")" && mv "$AGENT_TMP" "${AGENT_TMP}.yaml" && AGENT_TMP="${AGENT_TMP}.yaml"
     cat > "$AGENT_TMP" <<YAML
 version: 1
 agent:
@@ -48,7 +63,7 @@ agent:
     ROLE_ADDITIONAL: ""
 YAML
     AGENT_FILE="$AGENT_TMP"
-    echo "Prompt:   $APPEND_FILE"
+    info "Prompt:   $APPEND_FILE"
 else
     AGENT_FILE="$AGENT_DIR/agent.yaml"
 fi
@@ -57,11 +72,11 @@ LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 KIMI_LOG="$LOG_DIR/kimi-debug.log"
 
-echo "=== Kimi Code CLI + $MODEL ==="
-echo "Config:   ~/.kimi/config.toml"
-echo "Provider: swissai (openai_legacy)"
-echo "Model:    $MODEL"
-echo "Log:      $KIMI_LOG"
-echo ""
+info "=== Kimi Code CLI + $MODEL ==="
+info "Config:   ~/.kimi/config.toml"
+info "Provider: swissai (openai_legacy)"
+info "Model:    $MODEL"
+info "Log:      $KIMI_LOG"
+info ""
 
-exec kimi --config "$KIMI_CONFIG" --agent-file "$AGENT_FILE" --debug "${@:2}" 2> >(tee -a "$KIMI_LOG" >&2)
+exec kimi --config "$KIMI_CONFIG" --agent-file "$AGENT_FILE" --debug ${KIMI_ARGS[@]+"${KIMI_ARGS[@]}"} 2> >(tee -a "$KIMI_LOG" >&2)

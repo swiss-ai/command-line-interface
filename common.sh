@@ -27,6 +27,7 @@ fetch_chat_models() {
 import sys, json
 from collections import OrderedDict
 
+skip = ['embed', 'reranker']
 data = json.load(sys.stdin).get('data', [])
 
 seen = OrderedDict()

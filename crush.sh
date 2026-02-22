@@ -8,7 +8,22 @@ load_env "$SCRIPT_DIR"
 
 export OPENAI_API_KEY="$CSCS_SERVING_API"
 
-pick_model "${1:-}"
+IS_PIPE=0
+[ ! -t 0 ] && IS_PIPE=1
+export IS_PIPE
+info() { if [ "$IS_PIPE" -eq 1 ]; then echo "$@" >&2; else echo "$@"; fi; }
+
+# Parse --model/-m flag; all other args are forwarded to crush
+MODEL_ARG=""
+CRUSH_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -m|--model) MODEL_ARG="$2"; shift 2 ;;
+        *) CRUSH_ARGS+=("$1"); shift ;;
+    esac
+done
+
+pick_model "$MODEL_ARG"
 
 # Crush reads model from config, so patch it with the selected model
 CRUSH_CONFIG="$HOME/.config/crush/crush.json"
@@ -37,9 +52,9 @@ fi
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 
-echo "=== Crush + $MODEL ==="
-echo "Endpoint: $CSCS_API_BASE"
-echo "Model:    $MODEL"
-echo ""
+info "=== Crush + $MODEL ==="
+info "Endpoint: $CSCS_API_BASE"
+info "Model:    $MODEL"
+info ""
 
-exec ~/go/bin/crush "${@:2}"
+exec crush ${CRUSH_ARGS[@]+"${CRUSH_ARGS[@]}"}
