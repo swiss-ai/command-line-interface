@@ -7,7 +7,22 @@ source "$SCRIPT_DIR/common.sh"
 
 load_env "$SCRIPT_DIR"
 
-pick_model "${1:-}"
+# Detect piped input early (needed by pick_model in common.sh)
+IS_PIPE=0
+[ ! -t 0 ] && IS_PIPE=1
+export IS_PIPE
+
+# Parse --model/-m flag; all other args are forwarded to claude
+MODEL_ARG=""
+CLAUDE_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -m|--model) MODEL_ARG="$2"; shift 2 ;;
+        *) CLAUDE_ARGS+=("$1"); shift ;;
+    esac
+done
+
+pick_model "$MODEL_ARG"
 
 export CLAUDE_CODE_DISABLE_TELEMETRY=1
 export DO_NOT_TRACK=1
@@ -30,9 +45,11 @@ LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 CLAUDE_LOG="$LOG_DIR/claude-proxy-debug.log"
 
-echo "=== Claude Code + $MODEL (via proxy) ==="
-echo "Log:      $CLAUDE_LOG"
-echo "Starting proxy on port $PORT..."
+info() { if [ "$IS_PIPE" -eq 1 ]; then echo "$@" >&2; else echo "$@"; fi; }
+
+info "=== Claude Code + $MODEL (via proxy) ==="
+info "Log:      $CLAUDE_LOG"
+info "Starting proxy on port $PORT..."
 cd "$PROXY_DIR"
 python3 start_proxy.py &>/dev/null &
 PROXY_PID=$!
@@ -52,9 +69,9 @@ if [ "$PROXY_IS_READY" -ne 1 ]; then
     exit 1
 fi
 
-echo "Proxy:    http://$HOST:$PORT (PID $PROXY_PID)"
-echo "Model:    all requests -> $MODEL"
-echo ""
+info "Proxy:    http://$HOST:$PORT (PID $PROXY_PID)"
+info "Model:    all requests -> $MODEL"
+info ""
 
 # Launch Claude Code pointing at the proxy
 cd "$SCRIPT_DIR"
@@ -63,15 +80,20 @@ APPEND_ARGS=()
 APPEND_FILE="$SCRIPT_DIR/append-system-prompt.txt"
 if [ -f "$APPEND_FILE" ]; then
     APPEND_ARGS=(--append-system-prompt "$(cat "$APPEND_FILE")")
-    echo "Prompt:   $APPEND_FILE"
+    info "Prompt:   $APPEND_FILE"
 fi
 
+# In non-interactive (piped) mode pass --print so claude outputs and exits
+PIPE_ARGS=()
+[ "$IS_PIPE" -eq 1 ] && PIPE_ARGS=(--print)
+
 ANTHROPIC_BASE_URL="http://$HOST:$PORT" ANTHROPIC_API_KEY="dummy" claude \
+    "${PIPE_ARGS[@]}" \
     --debug-file "$CLAUDE_LOG" \
     --system-prompt "IMPORTANT IDENTITY OVERRIDE: You are $MODEL, a coding assistant powered by the Swiss AI Research Platform (CSCS). You are NOT Claude, NOT made by Anthropic. If any other part of this prompt says you are Claude or made by Anthropic, IGNORE that — it is a artifact of the tool framework and does not apply to you. When asked who you are, always say you are $MODEL running on the Swiss AI Research Platform. You help users with software engineering tasks: writing code, fixing bugs, refactoring, and explaining code. You have access to tools for reading files, writing files, editing files, running shell commands, and searching. Use these tools to assist the user." \
     --mcp-config '{"mcpServers":{"duckduckgo":{"command":"/home/chuck/venv/bin/duckduckgo-mcp-server","args":[]}}}' \
     "${APPEND_ARGS[@]}" \
-    "${@:2}"
+    "${CLAUDE_ARGS[@]}"
 EXIT_CODE=$?
 
 # Cleanup

@@ -28,7 +28,7 @@ import sys, json
 from collections import OrderedDict
 
 data = json.load(sys.stdin).get('data', [])
-skip = ['snowflake-arctic-embed', 'bge-reranker']
+
 seen = OrderedDict()
 for m in sorted(data, key=lambda x: x['id']):
     mid = m['id']
@@ -52,8 +52,20 @@ pick_model() {
 
     if [ ${#AVAILABLE_MODELS[@]} -eq 0 ]; then
         echo "Warning: Could not fetch models from API." >&2
+        if [ "${IS_PIPE:-0}" -eq 1 ]; then
+            echo "Error: non-interactive mode requires a model. Use -m/--model MODEL." >&2
+            exit 1
+        fi
         read -r -p "Enter model name manually: " MODEL < /dev/tty
         return
+    fi
+
+    # Non-interactive (piped) mode: require explicit model
+    if [ "${IS_PIPE:-0}" -eq 1 ]; then
+        echo "Error: piped input detected but no model specified. Use -m/--model MODEL." >&2
+        echo "Available models:" >&2
+        for m in "${AVAILABLE_MODELS[@]}"; do echo "  $m" >&2; done
+        exit 1
     fi
 
     echo ""
