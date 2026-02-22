@@ -4,13 +4,13 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 
 ## Available CLIs
 
-| Script | CLI |
-|--------|-----|
+| Script             | CLI                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | `./claude-code.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) (recommended) |
-| `./goose.sh` | [Goose](https://github.com/block/goose) |
-| `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) |
-| `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) |
-| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) |
+| `./goose.sh`       | [Goose](https://github.com/block/goose)                                                                                  |
+| `./kimi.sh`        | [Kimi Code](https://github.com/MoonshotAI/kimi-cli)                                                                      |
+| `./qwen.sh`        | [Qwen Code](https://github.com/QwenLM/qwen-code)                                                                         |
+| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter)                                                  |
 
 ## Setup
 
