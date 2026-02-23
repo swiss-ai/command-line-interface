@@ -17,7 +17,7 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 ### 1. Clone
 
 ```bash
-git clone https://github.com/swiss-ai/swiss-ai-cli.git
+git clone https://github.com/AryanAhadinia/command-line-interface.git
 cd swiss-ai-cli
 ```
 
