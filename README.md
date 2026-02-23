@@ -14,14 +14,14 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 
 ## Setup
 
-### 1. Clone
+### Clone
 
 ```bash
 git clone https://github.com/AryanAhadinia/command-line-interface.git
-cd swiss-ai-cli
+cd command-line-interface
 ```
 
-### 2. API key
+### Setup Environment
 
 Create a `.env` file with your CSCS serving API key:
 
@@ -29,7 +29,7 @@ Create a `.env` file with your CSCS serving API key:
 echo 'CSCS_SERVING_API=<your-key>' > .env
 ```
 
-Get your key from [serving.swissai.cscs.ch](https://serving.swissai.cscs.ch/). No VPN required.
+Get your key from <https://serving.swissai.cscs.ch/>.
 
 ### 3. Install CLIs
 
