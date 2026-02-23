@@ -1,0 +1,40 @@
+name: Test Tool Installers
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        tool: [claude, crush, goose, kimi, open-interpreter, qwen-code]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install make (Windows)
+        if: runner.os == 'Windows'
+        run: choco install make
+        shell: powershell
+
+      - name: Install ${{ matrix.tool }}
+        run: make install-${{ matrix.tool }}
+
+      - name: Test ${{ matrix.tool }}
+        run: make test-installation-${{ matrix.tool }}

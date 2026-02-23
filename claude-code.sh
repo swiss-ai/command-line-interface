@@ -34,16 +34,23 @@ echo "=== Claude Code + $MODEL (via proxy) ==="
 echo "Log:      $CLAUDE_LOG"
 echo "Starting proxy on port $PORT..."
 cd "$PROXY_DIR"
-python start_proxy.py &>/dev/null &
+python3 start_proxy.py &>/dev/null &
 PROXY_PID=$!
 
-# Wait for proxy to be ready
+PROXY_IS_READY=0
 for i in $(seq 1 20); do
     if curl -s "http://$HOST:$PORT/" > /dev/null 2>&1; then
+        PROXY_IS_READY=1
         break
     fi
     sleep 0.5
 done
+
+if [ "$PROXY_IS_READY" -ne 1 ]; then
+    echo "Proxy failed to start after 10 seconds."
+    kill "$PROXY_PID" 2>/dev/null
+    exit 1
+fi
 
 echo "Proxy:    http://$HOST:$PORT (PID $PROXY_PID)"
 echo "Model:    all requests -> $MODEL"

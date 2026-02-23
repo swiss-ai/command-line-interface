@@ -31,16 +31,20 @@ API_KEY = os.environ.get("CSCS_SERVING_API", "")
 MODEL = "openai/zai-org/GLM-4.7-Flash"
 
 
-def run_aider(workdir: str, message: str, files: list[str] | None = None, timeout: int = 60) -> dict:
+def run_aider(
+    workdir: str, message: str, files: list[str] | None = None, timeout: int = 60
+) -> dict:
     """Run aider non-interactively and return structured result."""
     cmd = [
         "aider",
-        "--model", MODEL,
+        "--model",
+        MODEL,
         "--no-git",
         "--yes",
         "--no-pretty",
         "--no-stream",
-        "--message", message,
+        "--message",
+        message,
     ]
     if files:
         cmd.extend(files)
@@ -78,7 +82,9 @@ def call_api_directly(messages: list[dict], temperature: float = 0.0) -> dict:
         "messages": messages,
         "temperature": temperature,
     }
-    resp = requests.post(f"{API_BASE}/chat/completions", json=payload, headers=headers, timeout=30)
+    resp = requests.post(
+        f"{API_BASE}/chat/completions", json=payload, headers=headers, timeout=30
+    )
     resp.raise_for_status()
     return resp.json()
 
@@ -91,47 +97,72 @@ def workdir(tmp_path):
 
 # ── Raw API Tests ──────────────────────────────────────────────────────────
 
+
 class TestDirectAPI:
     """Test the GLM model directly via the API."""
 
     def test_simple_code_generation(self):
         """Model can generate a simple Python function."""
-        result = call_api_directly([
-            {"role": "user", "content": "Write a Python function `is_prime(n)` that returns True if n is prime. Only output the code, no explanation."}
-        ])
+        result = call_api_directly(
+            [
+                {
+                    "role": "user",
+                    "content": "Write a Python function `is_prime(n)` that returns True if n is prime. Only output the code, no explanation.",
+                }
+            ]
+        )
         code = result["choices"][0]["message"]["content"]
         assert "def is_prime" in code
         assert "return" in code
 
     def test_bug_fix(self):
         """Model can identify and fix a bug."""
-        buggy_code = textwrap.dedent("""\
+        buggy_code = textwrap.dedent(
+            """\
             def fibonacci(n):
                 if n <= 0:
                     return 0
                 if n == 1:
                     return 1
                 return fibonacci(n - 1) + fibonacci(n - 3)  # bug: should be n-2
-        """)
-        result = call_api_directly([
-            {"role": "user", "content": f"Fix the bug in this code:\n```python\n{buggy_code}```\nOnly output the corrected code."}
-        ])
+        """
+        )
+        result = call_api_directly(
+            [
+                {
+                    "role": "user",
+                    "content": f"Fix the bug in this code:\n```python\n{buggy_code}```\nOnly output the corrected code.",
+                }
+            ]
+        )
         response = result["choices"][0]["message"]["content"]
         assert "n - 2" in response or "n-2" in response
 
     def test_code_explanation(self):
         """Model can explain code."""
-        result = call_api_directly([
-            {"role": "user", "content": "Explain in one sentence what this does: `lambda x: x if x <= 1 else x * __import__('math').factorial(x-1)`"}
-        ])
+        result = call_api_directly(
+            [
+                {
+                    "role": "user",
+                    "content": "Explain in one sentence what this does: `lambda x: x if x <= 1 else x * __import__('math').factorial(x-1)`",
+                }
+            ]
+        )
         response = result["choices"][0]["message"]["content"].lower()
-        assert "factorial" in response or "recursive" in response or "multiply" in response
+        assert (
+            "factorial" in response or "recursive" in response or "multiply" in response
+        )
 
     def test_instruction_following(self):
         """Model follows specific formatting instructions."""
-        result = call_api_directly([
-            {"role": "user", "content": "List exactly 3 Python built-in types, one per line, no numbering, no explanation."}
-        ])
+        result = call_api_directly(
+            [
+                {
+                    "role": "user",
+                    "content": "List exactly 3 Python built-in types, one per line, no numbering, no explanation.",
+                }
+            ]
+        )
         response = result["choices"][0]["message"]["content"].strip()
         lines = [l.strip() for l in response.split("\n") if l.strip()]
         # Should have approximately 3 lines (allow some tolerance for model quirks)
@@ -139,6 +170,7 @@ class TestDirectAPI:
 
 
 # ── Aider Integration Tests ───────────────────────────────────────────────
+
 
 class TestAiderIntegration:
     """Test aider CLI with the GLM backend."""
@@ -157,16 +189,22 @@ class TestAiderIntegration:
             assert "Hello" in content
         else:
             # Check if the code was at least in the output
-            assert "def greet" in result["stdout"], f"File not created and no code in output. stderr: {result['stderr'][:500]}"
+            assert (
+                "def greet" in result["stdout"]
+            ), f"File not created and no code in output. stderr: {result['stderr'][:500]}"
 
     def test_edit_existing_file(self, workdir):
         """Aider can edit an existing file."""
         # Create initial file
         target = Path(workdir) / "calc.py"
-        target.write_text(textwrap.dedent("""\
+        target.write_text(
+            textwrap.dedent(
+                """\
             def add(a, b):
                 return a + b
-        """))
+        """
+            )
+        )
 
         result = run_aider(
             workdir,
@@ -193,6 +231,7 @@ class TestAiderIntegration:
 
 
 # ── Tool Use / Function Calling Tests (via raw API) ──────────────────────
+
 
 class TestToolUse:
     """Test if the model can handle tool/function calling."""
@@ -229,7 +268,12 @@ class TestToolUse:
         }
 
         try:
-            resp = requests.post(f"{API_BASE}/chat/completions", json=payload, headers=headers, timeout=30)
+            resp = requests.post(
+                f"{API_BASE}/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
             data = resp.json()
             if resp.ok:
                 msg = data["choices"][0]["message"]
@@ -238,7 +282,9 @@ class TestToolUse:
                 assert has_tool_call, "Model should invoke the get_weather tool"
                 assert msg["tool_calls"][0]["function"]["name"] == "get_weather"
             else:
-                pytest.skip(f"Tool calling not supported by this endpoint: {resp.status_code}")
+                pytest.skip(
+                    f"Tool calling not supported by this endpoint: {resp.status_code}"
+                )
         except Exception as e:
             pytest.skip(f"Tool calling test skipped: {e}")
 
@@ -282,20 +328,30 @@ class TestToolUse:
         payload = {
             "model": "zai-org/GLM-4.7-Flash",
             "messages": [
-                {"role": "user", "content": "Write 'hello world' to a file called output.txt"}
+                {
+                    "role": "user",
+                    "content": "Write 'hello world' to a file called output.txt",
+                }
             ],
             "tools": tools,
             "tool_choice": "auto",
         }
 
         try:
-            resp = requests.post(f"{API_BASE}/chat/completions", json=payload, headers=headers, timeout=30)
+            resp = requests.post(
+                f"{API_BASE}/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
             if resp.ok:
                 data = resp.json()
                 msg = data["choices"][0]["message"]
                 if "tool_calls" in msg and msg["tool_calls"]:
                     tool_name = msg["tool_calls"][0]["function"]["name"]
-                    assert tool_name == "write_file", f"Expected write_file, got {tool_name}"
+                    assert (
+                        tool_name == "write_file"
+                    ), f"Expected write_file, got {tool_name}"
                 else:
                     pytest.skip("Model did not use tools for this request")
             else:

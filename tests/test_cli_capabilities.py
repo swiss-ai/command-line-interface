@@ -37,6 +37,7 @@ TIMEOUT = 90  # seconds per CLI invocation
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
+
 def _base_env():
     """Return a clean copy of os.environ with CSCS API credentials."""
     env = os.environ.copy()
@@ -44,7 +45,6 @@ def _base_env():
     env["OPENAI_API_BASE"] = API_BASE
     env["OPENAI_BASE_URL"] = API_BASE
     return env
-
 
 
 def run_kimi(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
@@ -56,10 +56,17 @@ def run_kimi(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
     result = subprocess.run(
         ["kimi", "--work-dir", workdir],
         input=message + "\n",
-        cwd=workdir, capture_output=True, text=True,
-        timeout=timeout, env=env,
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=env,
     )
-    return {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+    return {
+        "returncode": result.returncode,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+    }
 
 
 def run_interpreter(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
@@ -67,17 +74,29 @@ def run_interpreter(workdir: str, message: str, *, timeout: int = TIMEOUT) -> di
     cmd = [
         "interpreter",
         "-y",
-        "--model", MODEL_OPENAI,
-        "--api_base", API_BASE,
-        "--api_key", API_KEY,
-        "--context_window", "128000",
+        "--model",
+        MODEL_OPENAI,
+        "--api_base",
+        API_BASE,
+        "--api_key",
+        API_KEY,
+        "--context_window",
+        "128000",
     ]
     result = subprocess.run(
-        cmd, input=message + "\n",
-        cwd=workdir, capture_output=True, text=True,
-        timeout=timeout, env=_base_env(),
+        cmd,
+        input=message + "\n",
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=_base_env(),
     )
-    return {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+    return {
+        "returncode": result.returncode,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+    }
 
 
 def run_goose(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
@@ -89,10 +108,18 @@ def run_goose(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
     env["GOOSE_MODEL"] = MODEL_RAW
     cmd = ["goose", "run", "-t", message]
     result = subprocess.run(
-        cmd, cwd=workdir, capture_output=True, text=True,
-        timeout=timeout, env=env,
+        cmd,
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=env,
     )
-    return {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+    return {
+        "returncode": result.returncode,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+    }
 
 
 def run_qwen(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
@@ -101,10 +128,18 @@ def run_qwen(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
     env["OPENAI_MODEL"] = MODEL_RAW
     cmd = ["qwen", "-p", message, "-y"]
     result = subprocess.run(
-        cmd, cwd=workdir, capture_output=True, text=True,
-        timeout=timeout, env=env,
+        cmd,
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=env,
     )
-    return {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+    return {
+        "returncode": result.returncode,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+    }
 
 
 def combined_output(result: dict) -> str:
@@ -130,7 +165,7 @@ PROMPT_WEB_SEARCH = (
 )
 
 PROMPT_CODE_EXEC = (
-    "Run this Python command and tell me the result: python3 -c \"print(7 * 6)\""
+    'Run this Python command and tell me the result: python3 -c "print(7 * 6)"'
 )
 
 PROMPT_AGENTIC = (
@@ -196,16 +231,16 @@ class TestInterpreter:
     def test_web_fetch(self, tmp_path):
         result = run_interpreter(str(tmp_path), PROMPT_WEB_FETCH)
         output = combined_output(result)
-        assert re.search(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output), (
-            f"No IP address found in output:\n{output[-1000:]}"
-        )
+        assert re.search(
+            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output
+        ), f"No IP address found in output:\n{output[-1000:]}"
 
     def test_web_search(self, tmp_path):
         result = run_interpreter(str(tmp_path), PROMPT_WEB_SEARCH)
         output = combined_output(result)
-        assert "cscs" in output or "swiss" in output, (
-            f"Expected 'cscs' or 'swiss' in output:\n{output[-1000:]}"
-        )
+        assert (
+            "cscs" in output or "swiss" in output
+        ), f"Expected 'cscs' or 'swiss' in output:\n{output[-1000:]}"
 
     def test_code_exec(self, tmp_path):
         result = run_interpreter(str(tmp_path), PROMPT_CODE_EXEC)
@@ -239,9 +274,9 @@ class TestGoose:
     def test_web_fetch(self, tmp_path):
         result = run_goose(str(tmp_path), PROMPT_WEB_FETCH)
         output = combined_output(result)
-        assert re.search(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output), (
-            f"No IP address found in output:\n{output[-1000:]}"
-        )
+        assert re.search(
+            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output
+        ), f"No IP address found in output:\n{output[-1000:]}"
 
     @pytest.mark.skip(reason="Goose has no web search capability")
     def test_web_search(self):
@@ -279,16 +314,16 @@ class TestQwen:
     def test_web_fetch(self, tmp_path):
         result = run_qwen(str(tmp_path), PROMPT_WEB_FETCH)
         output = combined_output(result)
-        assert re.search(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output), (
-            f"No IP address found in output:\n{output[-1000:]}"
-        )
+        assert re.search(
+            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", output
+        ), f"No IP address found in output:\n{output[-1000:]}"
 
     def test_web_search(self, tmp_path):
         result = run_qwen(str(tmp_path), PROMPT_WEB_SEARCH)
         output = combined_output(result)
-        assert "cscs" in output or "swiss" in output, (
-            f"Expected 'cscs' or 'swiss' in output:\n{output[-1000:]}"
-        )
+        assert (
+            "cscs" in output or "swiss" in output
+        ), f"Expected 'cscs' or 'swiss' in output:\n{output[-1000:]}"
 
     def test_code_exec(self, tmp_path):
         result = run_qwen(str(tmp_path), PROMPT_CODE_EXEC)

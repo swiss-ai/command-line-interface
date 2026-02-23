@@ -4,24 +4,24 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 
 ## Available CLIs
 
-| Script | CLI |
-|--------|-----|
+| Script             | CLI                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | `./claude-code.sh` | [Claude Code](https://claude.com/claude-code) + [proxy](https://github.com/fuergaosi233/claude-code-proxy) (recommended) |
-| `./goose.sh` | [Goose](https://github.com/block/goose) |
-| `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) |
-| `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) |
-| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) |
+| `./goose.sh`       | [Goose](https://github.com/block/goose)                                                                                  |
+| `./kimi.sh`        | [Kimi Code](https://github.com/MoonshotAI/kimi-cli)                                                                      |
+| `./qwen.sh`        | [Qwen Code](https://github.com/QwenLM/qwen-code)                                                                         |
+| `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter)                                                  |
 
 ## Setup
 
-### 1. Clone
+### Clone
 
 ```bash
-git clone https://github.com/swiss-ai/swiss-ai-cli.git
-cd swiss-ai-cli
+git clone https://github.com/AryanAhadinia/command-line-interface.git
+cd command-line-interface
 ```
 
-### 2. API key
+### Setup Environment
 
 Create a `.env` file with your CSCS serving API key:
 
@@ -29,7 +29,7 @@ Create a `.env` file with your CSCS serving API key:
 echo 'CSCS_SERVING_API=<your-key>' > .env
 ```
 
-Get your key from [serving.swissai.cscs.ch](https://serving.swissai.cscs.ch/). No VPN required.
+Get your key from <https://serving.swissai.cscs.ch/>.
 
 ### 3. Install CLIs
 
