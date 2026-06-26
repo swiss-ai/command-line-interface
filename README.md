@@ -52,8 +52,8 @@ npm install -g @qwen-code/qwen-code@latest
 # Open Interpreter
 pip install open-interpreter
 
-# OpenCode
-curl -fsSL https://opencode.ai/install | bash
+# OpenCode 
+VERSION=1.16.2 curl -fsSL https://opencode.ai/install | bash
 ```
 
 ### 4. Kimi config
