@@ -11,6 +11,7 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 | `./kimi.sh` | [Kimi Code](https://github.com/MoonshotAI/kimi-cli) |
 | `./qwen.sh` | [Qwen Code](https://github.com/QwenLM/qwen-code) |
 | `./interpreter.sh` | [Open Interpreter](https://github.com/openinterpreter/open-interpreter) |
+| `./opencode.sh` | [OpenCode](https://github.com/anomalyco/opencode) |
 
 ## Setup
 
@@ -50,6 +51,10 @@ npm install -g @qwen-code/qwen-code@latest
 
 # Open Interpreter
 pip install open-interpreter
+
+# OpenCode 
+export VERSION=1.16.2 && curl -fsSL https://opencode.ai/install | bash
+
 ```
 
 ### 4. Kimi config
