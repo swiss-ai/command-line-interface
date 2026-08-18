@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared helpers for Swiss AI Research Platform CLI launchers
 
-CSCS_API_BASE="https://api.swissai.cscs.ch/v1"
+CSCS_API_BASE="https://api.swissai.svc.cscs.ch/v1"
 
 # Load API key from .env
 load_env() {

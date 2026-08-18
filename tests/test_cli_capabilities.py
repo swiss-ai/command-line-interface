@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
-API_BASE = "https://api.swissai.cscs.ch/v1"
+API_BASE = "https://api.swissai.svc.cscs.ch/v1"
 API_KEY = os.environ.get("CSCS_SERVING_API", "")
 MODEL_OPENAI = "openai/zai-org/GLM-4.7-Flash"  # aider/interpreter litellm format
 MODEL_RAW = "zai-org/GLM-4.7-Flash"  # goose/qwen format
@@ -83,7 +83,7 @@ def run_interpreter(workdir: str, message: str, *, timeout: int = TIMEOUT) -> di
 def run_goose(workdir: str, message: str, *, timeout: int = TIMEOUT) -> dict:
     """Run goose in non-interactive run mode."""
     env = _base_env()
-    env["OPENAI_HOST"] = "https://api.swissai.cscs.ch"
+    env["OPENAI_HOST"] = "https://api.swissai.svc.cscs.ch"
     env["OPENAI_BASE_PATH"] = "v1/chat/completions"
     env["GOOSE_PROVIDER"] = "openai"
     env["GOOSE_MODEL"] = MODEL_RAW
