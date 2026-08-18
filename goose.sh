@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/common.sh"
 load_env "$SCRIPT_DIR"
 
 export OPENAI_API_KEY="$CSCS_SERVING_API"
-export OPENAI_HOST="https://api.swissai.cscs.ch"
+export OPENAI_HOST="https://api.swissai.svc.cscs.ch"
 export OPENAI_BASE_PATH="v1/chat/completions"
 export GOOSE_PROVIDER="openai"
 

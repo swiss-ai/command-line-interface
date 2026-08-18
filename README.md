@@ -1,6 +1,6 @@
 # Swiss AI Command Line Interface (experimental)
 
-Command line coding assistants configured for the [Swiss AI Research Platform (CSCS)](https://serving.swissai.cscs.ch/), using the OpenAI-compatible API at `https://api.swissai.cscs.ch/v1`.
+Command line coding assistants configured for the [Swiss AI Research Platform (CSCS)](https://serving.swissai.svc.cscs.ch/), using the OpenAI-compatible API at `https://api.swissai.svc.cscs.ch/v1`.
 
 ## Available CLIs
 
@@ -18,8 +18,8 @@ Command line coding assistants configured for the [Swiss AI Research Platform (C
 ### 1. Clone
 
 ```bash
-git clone https://github.com/swiss-ai/swiss-ai-cli.git
-cd swiss-ai-cli
+git clone https://github.com/swiss-ai/command-line-interface.git
+cd command-line-interface
 ```
 
 ### 2. API key
@@ -30,7 +30,7 @@ Create a `.env` file with your CSCS serving API key:
 echo 'CSCS_SERVING_API=<your-key>' > .env
 ```
 
-Get your key from [serving.swissai.cscs.ch](https://serving.swissai.cscs.ch/). No VPN required.
+Get your key from [serving.swissai.svc.cscs.ch](https://serving.swissai.svc.cscs.ch/). No VPN required.
 
 ### 3. Install CLIs
 
@@ -53,7 +53,7 @@ npm install -g @qwen-code/qwen-code@latest
 pip install open-interpreter
 
 # OpenCode 
-export VERSION=1.16.2 && curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://opencode.ai/install | bash
 
 ```
 
@@ -66,7 +66,7 @@ default_model = "glm-flash"
 
 [providers.swissai]
 type = "openai_legacy"
-base_url = "https://api.swissai.cscs.ch/v1"
+base_url = "https://api.swissai.svc.cscs.ch/v1"
 api_key = "<your-key>"
 
 [models.glm-flash]
