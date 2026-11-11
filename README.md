@@ -85,7 +85,7 @@ max_context_size = 128000
 
 `./opencode.sh [model] [opencode args]` regenerates `~/.config/opencode/opencode.json` on every run (back it up if you have your own).
 
-- **Context limits**: each model's window is read from `--max-model-len` in its `/v1/models` metadata and written as an OpenCode `limit` (a quarter reserved for output). Without it OpenCode requests `max_tokens=32000`, which small-context models (e.g. 16k) reject.
+- **Context limits**: each model's window is read from `--max-model-len` in its `/v1/models` metadata and written as an OpenCode `limit` (an eighth, at least 2048, reserved for output; no `input` limit, which would make OpenCode compact at `input - output`). Without it OpenCode requests `max_tokens=32000`, which small-context models (e.g. 16k) reject.
 - **Minimal prompt**: `OPENCODE_DISABLE_CLAUDE_CODE=1` is set by default, so OpenCode does not load `~/.claude` (`CLAUDE.md`, skills). A large skills folder can add 10k+ tokens to every request. Set `OPENCODE_DISABLE_CLAUDE_CODE=0` to keep them.
 - OpenCode's own system prompt plus tool definitions is about 7.5k tokens.
 - Non-interactive: `./opencode.sh <model> run -- "<prompt>"`.
