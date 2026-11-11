@@ -66,7 +66,9 @@ available_models = [l for l in os.environ['OPENCODE_AVAILABLE_MODELS'].splitline
 
 # Without a limit OpenCode requests max_tokens=32000, which vLLM rejects for
 # models served with a smaller --max-model-len (e.g. 16k). Read that value from
-# the model's framework_args label and leave a quarter of it for output.
+# the model's framework_args label and reserve an eighth of it for output.
+# No 'input' limit on purpose: with one, OpenCode compacts at input - output
+# (8k for a 16k model, about the size of its own prompt).
 def limits(model_id):
     try:
         data = json.loads(os.environ.get('OPENCODE_MODELS_JSON') or '{}').get('data', [])
@@ -79,8 +81,8 @@ def limits(model_id):
                 context = int(args[args.index('--max-model-len') + 1])
             except (IndexError, ValueError):
                 return None
-            output = min(context // 4, 32000)
-            return {'context': context, 'input': context - output, 'output': output}
+            output = min(max(context // 8, 2048), 32000)
+            return {'context': context, 'output': output}
     return None
 
 def model_entry(m):
