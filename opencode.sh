@@ -7,6 +7,10 @@ source "$SCRIPT_DIR/common.sh"
 load_env "$SCRIPT_DIR"
 
 export SWISSAI_API_KEY="$CSCS_SERVING_API"
+# Keep the prompt minimal: by default OpenCode also loads ~/.claude (CLAUDE.md,
+# skills), which can add several thousand tokens and overflow small-context
+# models. Set OPENCODE_DISABLE_CLAUDE_CODE=0 to keep them.
+export OPENCODE_DISABLE_CLAUDE_CODE="${OPENCODE_DISABLE_CLAUDE_CODE:-1}"
 
 # Under WSL, `opencode` execs into a native Windows binary, which does NOT
 # inherit WSL-side env vars unless they're listed in WSLENV.
@@ -50,6 +54,8 @@ export OPENCODE_BASE_URL="$CSCS_API_BASE"
 export OPENCODE_MODEL="$MODEL"
 export OPENCODE_INSTRUCTIONS="$(printf '%s\n' "${INSTRUCTIONS[@]}")"
 export OPENCODE_AVAILABLE_MODELS="$(printf '%s\n' "${AVAILABLE_MODELS[@]}")"
+# Model metadata, to size each model's context window (see limits() below)
+export OPENCODE_MODELS_JSON="$(curl -s -H "Authorization: Bearer $CSCS_SERVING_API" "${CSCS_API_BASE}/models" 2>/dev/null || true)"
 
 python3 -c "
 import json, os
@@ -57,6 +63,32 @@ import json, os
 model = os.environ['OPENCODE_MODEL']
 instructions = [l for l in os.environ['OPENCODE_INSTRUCTIONS'].splitlines() if l]
 available_models = [l for l in os.environ['OPENCODE_AVAILABLE_MODELS'].splitlines() if l]
+
+# Without a limit OpenCode requests max_tokens=32000, which vLLM rejects for
+# models served with a smaller --max-model-len (e.g. 16k). Read that value from
+# the model's framework_args label and leave a quarter of it for output.
+def limits(model_id):
+    try:
+        data = json.loads(os.environ.get('OPENCODE_MODELS_JSON') or '{}').get('data', [])
+    except ValueError:
+        return None
+    for m in data:
+        args = ((m.get('labels') or {}).get('framework_args') or '').split()
+        if m.get('id') == model_id and '--max-model-len' in args:
+            try:
+                context = int(args[args.index('--max-model-len') + 1])
+            except (IndexError, ValueError):
+                return None
+            output = min(context // 4, 32000)
+            return {'context': context, 'input': context - output, 'output': output}
+    return None
+
+def model_entry(m):
+    entry = {'name': m}
+    limit = limits(m)
+    if limit:
+        entry['limit'] = limit
+    return entry
 
 cfg = {
     '\$schema': 'https://opencode.ai/config.json',
@@ -69,7 +101,7 @@ cfg = {
                 'baseURL': os.environ['OPENCODE_BASE_URL'],
                 'apiKey': '{env:SWISSAI_API_KEY}',
             },
-            'models': {m: {'name': m} for m in available_models},
+            'models': {m: model_entry(m) for m in available_models},
         },
     },
     'model': f'swissai/{model}',

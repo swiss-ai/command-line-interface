@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 # Shared helpers for Swiss AI Research Platform CLI launchers
 
-CSCS_API_BASE="https://api.swissai.svc.cscs.ch/v1"
+# Override with CSCS_API_BASE, e.g. https://api-test.swissai.svc.cscs.ch/v1 inside
+# OpenSandbox pods (they cannot reach the nginx ingress behind api.).
+CSCS_API_BASE="${CSCS_API_BASE:-https://api.swissai.svc.cscs.ch/v1}"
 
-# Load API key from .env
+# Load the API key: SWISSAI_RESEARCH_API_KEY from the environment (or .env).
+# CSCS_SERVING_API is still accepted for older .env files. The launchers use
+# CSCS_SERVING_API internally.
 load_env() {
     local script_dir="$1"
     if [ -f "$script_dir/.env" ]; then
         set -a; source "$script_dir/.env"; set +a
     fi
-    if [ -z "${CSCS_SERVING_API:-}" ]; then
-        echo "Error: CSCS_SERVING_API not set in .env" >&2
+    CSCS_SERVING_API="${SWISSAI_RESEARCH_API_KEY:-${CSCS_SERVING_API:-}}"
+    if [ -z "$CSCS_SERVING_API" ]; then
+        echo "Error: set SWISSAI_RESEARCH_API_KEY (export it, or put it in .env)" >&2
         exit 1
     fi
+    export CSCS_SERVING_API
 }
 
 # Query available chat models (excludes embedding/reranker models)

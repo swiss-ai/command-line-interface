@@ -27,7 +27,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 API_BASE = "https://api.swissai.svc.cscs.ch/v1"
-API_KEY = os.environ.get("CSCS_SERVING_API", "")
+API_KEY = os.environ.get("SWISSAI_RESEARCH_API_KEY") or os.environ.get("CSCS_SERVING_API", "")
 MODEL = "openai/zai-org/GLM-4.7-Flash"
 
 
